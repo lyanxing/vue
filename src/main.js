@@ -9,8 +9,8 @@ function Seed (opts) {
 
     var self = this,
         root = this.el = document.getElementById(opts.id),
-        els  = root.querySelectorAll(selector),
-        bindings = {} // internal real data
+        els  = root.querySelectorAll(selector),   //找到带有指令的元素
+        bindings = {} // internal real data  保存内部用到的所有数据
 
     self.scope = {} // external interface
 
@@ -26,18 +26,6 @@ function Seed (opts) {
     function processNode (el) {    //el 顶部元素
         cloneAttributes(el.attributes).forEach(function (attr) {
 
-            /*解析指令  返回
-            {
-                attr: attr,   // {name: "sd-text", value: "msg | capitalize"}
-                key: key,     // "msg"
-                filters: filters, // ["capitalize"]
-                definition: def,  // f(el,value)
-                argument: arg,    // null
-                update: typeof def === 'function'
-                    ? def
-                    : def.update
-            }
-            */
             var directive = parseDirective(attr)  
 
             if (directive) {
@@ -57,6 +45,15 @@ function cloneAttributes (attributes) {
     })
 }
 
+/*
+    将指令的变量作为key赋给bings，key对应的值是用到该变量的所有指令和变量的值
+    bindings: {
+        msg:{                           //msg为scop中的变量，也即vue中data中的变量
+            directives[directive],      //directives包含该变量全部被使用的信息
+            value:undefined             //value该变量的值
+        }
+    }
+*/
 function bindDirective (seed, el, bindings, directive) {
     el.removeAttribute(directive.attr.name)
     var key = directive.key,
@@ -73,11 +70,17 @@ function bindDirective (seed, el, bindings, directive) {
     if (directive.bind) {
         directive.bind(el, binding.value)
     }
+
+    // scope中没有这个键就绑定 getter setter
     if (!seed.scope.hasOwnProperty(key)) {
         bindAccessors(seed, key, binding)
     }
 }
 
+/*
+    将binging中的值和seed中的值绑定，访问seed.scope[key]等同于访问binding[key]
+    改变scope中的值时更新binging中的值，并重新渲染
+*/
 function bindAccessors (seed, key, binding) {
     Object.defineProperty(seed.scope, key, {
         get: function () {
@@ -89,6 +92,8 @@ function bindAccessors (seed, key, binding) {
                 if (value && directive.filters) {
                     value = applyFilters(value, directive)
                 }
+
+                //重新渲染
                 directive.update(
                     directive.el,
                     value,
@@ -101,6 +106,19 @@ function bindAccessors (seed, key, binding) {
     })
 }
 
+/*解析指令  
+    @return
+    {
+        attr: attr,   // {name: "sd-text", value: "msg | capitalize"}
+        key: key,     // "msg"
+        filters: filters, // ["capitalize"]
+        definition: def,  // f(el,value)
+        argument: arg,    // null
+        update: typeof def === 'function'
+            ? def
+            : def.update
+    }
+*/
 function parseDirective (attr) {
 
     if (attr.name.indexOf(prefix) === -1) return
