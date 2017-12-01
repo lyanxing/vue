@@ -23,9 +23,23 @@ function Seed (opts) {
         self.scope[key] = opts.scope[key]
     }
 
-    function processNode (el) {
+    function processNode (el) {    //el 顶部元素
         cloneAttributes(el.attributes).forEach(function (attr) {
-            var directive = parseDirective(attr)
+
+            /*解析指令  返回
+            {
+                attr: attr,   // {name: "sd-text", value: "msg | capitalize"}
+                key: key,     // "msg"
+                filters: filters, // ["capitalize"]
+                definition: def,  // f(el,value)
+                argument: arg,    // null
+                update: typeof def === 'function'
+                    ? def
+                    : def.update
+            }
+            */
+            var directive = parseDirective(attr)  
+
             if (directive) {
                 bindDirective(self, el, bindings, directive)
             }
