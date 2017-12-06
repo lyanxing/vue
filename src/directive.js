@@ -2,11 +2,13 @@ var config     = require('./config'),
     Directives = require('./directives'),
     Filters    = require('./filters')
 
-var KEY_RE = /^[^\|]+/,
-    FILTERS_RE = /\|[^\|]+/g
+var KEY_RE = /^[^\|]+/,          //非 | 符开头和非 | 组成的串
+    FILTERS_RE = /\|[^\|]+/g     //| 和非 | 组成的串
 
 function Directive (def, attr, arg, key) {
 
+    //将指令对应的DOM操作函数赋给this._update
+    //如果是on或者each将其update函数赋给this._update，如果是其它属性则this[prop]=def[prop]
     if (typeof def === 'function') {
         this._update = def
     } else {
@@ -59,20 +61,20 @@ module.exports = {
     // make sure the directive and value is valid
     parse: function (attr) {
 
-        var prefix = config.prefix
+        var prefix = config.prefix        // prefix = "sd"
         if (attr.name.indexOf(prefix) === -1) return null
 
-        var noprefix = attr.name.slice(prefix.length + 1),
-            argIndex = noprefix.indexOf('-'),
-            arg = argIndex === -1
+        var noprefix = attr.name.slice(prefix.length + 1),  // sd-text -> text
+            argIndex = noprefix.indexOf('-'),    // on-click 和 text 两种类型的情况
+            arg = argIndex === -1      // text情况
                 ? null
-                : noprefix.slice(argIndex + 1),
+                : noprefix.slice(argIndex + 1),    // arg = click  arg是指令on和class的参数 on-click中的click；class-red中的red
             name = arg
-                ? noprefix.slice(0, argIndex)
-                : noprefix,
-            def = Directives[name]
+                ? noprefix.slice(0, argIndex)      // name = on
+                : noprefix,                        // name = text
+            def = Directives[name]                 // def = Directives[on],def = Directives[text]
 
-        var key = attr.value.match(KEY_RE)
+        var key = attr.value.match(KEY_RE)   // msg.wow | capitalize -> msg.wow
 
         return def && key
             ? new Directive(def, attr, arg, key[0].trim())

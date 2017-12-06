@@ -25,9 +25,21 @@ function Seed (el, data) {
 
 }
 
+/*
+    编译DOM元素  
+    将node的属性提取出来
+    利用_.bind()方法生成属性中key对应的数据
+    _bindings{
+        key:{
+            value:  ,
+            directives: [],
+        }
+    }
+*/
 Seed.prototype._compileNode = function (node) {
     var self = this
     cloneAttributes(node.attributes).forEach(function (attr) {
+        //通过attr生成directive对象
         var directive = Directive.parse(attr)
         if (directive) {
             self._bind(node, directive)
