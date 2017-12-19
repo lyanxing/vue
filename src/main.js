@@ -71,7 +71,7 @@ function bindDirective (seed, el, bindings, directive) {
         directive.bind(el, binding.value)
     }
 
-    // scope中没有这个键就绑定 getter setter
+    // 最开始 scope中没有这个键绑定 getter setter
     if (!seed.scope.hasOwnProperty(key)) {
         bindAccessors(seed, key, binding)
     }
